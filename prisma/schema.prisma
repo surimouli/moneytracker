@@ -1,0 +1,37 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js" // we can later switch to "prisma-client" if needed
+}
+
+datasource db {
+  provider = "postgresql"
+  // ⚠️ No `url` here in Prisma 7 – it lives in prisma.config.ts
+}
+
+model User {
+  id           String         @id          // Clerk userId
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  transactions Transaction[]
+}
+
+model Transaction {
+  id          String    @id @default(cuid())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
+
+  amount      Float
+  type        TransactionType
+  category    String
+  description String?
+  date        DateTime  @default(now())
+
+  createdAt   DateTime  @default(now())
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}

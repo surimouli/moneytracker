@@ -1,18 +1,9 @@
-"use client";
+'use client';
 
-import {
-  SignedIn,
-  SignedOut,
-  RedirectToSignIn,
-  useUser,
-  UserButton,
-} from "@clerk/nextjs";
+import { useEffect, useState } from 'react';
+import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/nextjs';
 
 export default function DashboardPage() {
-  const { user } = useUser();
-
-  const fakeTotal = 125.4; // temporary until backend exists
-
   return (
     <>
       <SignedOut>
@@ -20,162 +11,236 @@ export default function DashboardPage() {
       </SignedOut>
 
       <SignedIn>
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.8rem" }}>
-          <header
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "1rem",
-            }}
-          >
-            <div>
-              <h1
-                style={{
-                  fontSize: "1.7rem",
-                  fontWeight: 700,
-                  color: "#FFB3C6",
-                  letterSpacing: "-0.03em",
-                }}
-              >
-                Your Money, Your Story
-              </h1>
-              <p
-                style={{
-                  fontSize: "0.9rem",
-                  color: "#D7C2C0",
-                  marginTop: "0.15rem",
-                }}
-              >
-                Signed in as{" "}
-                <span style={{ fontWeight: 600 }}>
-                  {user?.primaryEmailAddress?.emailAddress ||
-                    user?.username ||
-                    user?.id}
-                </span>
-              </p>
-            </div>
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: {
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
-                    borderRadius: "999px",
-                  },
-                },
-              }}
-            />
-          </header>
-
-          <section
-            style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(0, 2fr) minmax(0, 1.3fr)",
-              gap: "1.4rem",
-            }}
-          >
-            <div
-              style={{
-                borderRadius: "1.1rem",
-                padding: "1.3rem",
-                border: "1px solid #3B2520",
-                background:
-                  "linear-gradient(145deg, rgba(36,23,23,0.96), rgba(53,32,28,0.96))",
-                boxShadow: "0 18px 40px rgba(0,0,0,0.6)",
-              }}
-            >
-              <p
-                style={{
-                  fontSize: "0.9rem",
-                  color: "#FFB3C6",
-                  fontWeight: 600,
-                  marginBottom: "0.4rem",
-                }}
-              >
-                Net balance (demo)
-              </p>
-              <p
-                style={{
-                  fontSize: "2.2rem",
-                  fontWeight: 800,
-                  color: fakeTotal >= 0 ? "#FFB3C6" : "#FF8FAB",
-                }}
-              >
-                ${fakeTotal.toFixed(2)}
-              </p>
-              <p
-                style={{
-                  fontSize: "0.85rem",
-                  color: "#D7C2C0",
-                  marginTop: "0.4rem",
-                }}
-              >
-                This number will be powered by your real transactions once we hook up the
-                Python backend.
-              </p>
-            </div>
-
-            <div
-              style={{
-                borderRadius: "1.1rem",
-                padding: "1.1rem",
-                border: "1px solid #3B2520",
-                backgroundColor: "#241717",
-              }}
-            >
-              <p
-                style={{
-                  fontSize: "0.9rem",
-                  color: "#FFB3C6",
-                  fontWeight: 600,
-                  marginBottom: "0.4rem",
-                }}
-              >
-                What&apos;s coming next
-              </p>
-              <ul
-                style={{
-                  paddingLeft: "1.1rem",
-                  color: "#D7C2C0",
-                  fontSize: "0.86rem",
-                  marginTop: "0.2rem",
-                }}
-              >
-                <li>Python FastAPI backend</li>
-                <li>Real database (SQLite/Postgres)</li>
-                <li>Add income & expense entries</li>
-                <li>History of all your transactions</li>
-              </ul>
-            </div>
-          </section>
-
-          <section
-            style={{
-              borderRadius: "1.1rem",
-              padding: "1.2rem",
-              border: "1px solid #3B2520",
-              backgroundColor: "#241717",
-            }}
-          >
-            <p
-              style={{
-                fontSize: "0.9rem",
-                color: "#FFB3C6",
-                fontWeight: 600,
-                marginBottom: "0.3rem",
-              }}
-            >
-              Dashboard status
-            </p>
-            <p style={{ fontSize: "0.88rem", color: "#D7C2C0" }}>
-              ✅ Auth is working with Clerk.
-              <br />
-              🧱 Next up: connect this to a FastAPI backend so this page shows your
-              actual data instead of placeholders.
-            </p>
-          </section>
-        </div>
+        <DashboardContent />
       </SignedIn>
     </>
+  );
+}
+
+function DashboardContent() {
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({
+    amount: '',
+    type: 'EXPENSE',
+    category: '',
+    description: '',
+    date: '',
+  });
+  const [error, setError] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch('/api/transactions');
+        if (!res.ok) {
+          throw new Error('Failed to load transactions');
+        }
+        const data = await res.json();
+        setTransactions(data);
+      } catch (err) {
+        console.error(err);
+        setError('Could not load transactions.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTransactions();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSaving(true);
+
+    try {
+      const res = await fetch('/api/transactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'Failed to save');
+      }
+
+      const newTx = await res.json();
+      setTransactions((prev) => [newTx, ...prev]);
+
+      setForm({
+        amount: '',
+        type: 'EXPENSE',
+        category: '',
+        description: '',
+        date: '',
+      });
+    } catch (err) {
+      console.error(err);
+      setError(err.message || 'Something went wrong');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <main className="min-h-screen flex flex-col items-center bg-[#fff7f5] px-4 py-8">
+      <div className="w-full max-w-2xl bg-white rounded-xl shadow-md p-6 border border-pink-100">
+        <h1 className="text-2xl font-bold mb-4 text-[#5b2b29]">
+          MoneyTracker Dashboard 💸
+        </h1>
+
+        <p className="text-sm text-gray-600 mb-4">
+          Add your income & expenses below. Each entry is saved to your account in the database.
+        </p>
+
+        {error && (
+          <div className="mb-4 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-3 mb-6">
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-1">Amount</label>
+              <input
+                type="number"
+                step="0.01"
+                name="amount"
+                value={form.amount}
+                onChange={handleChange}
+                required
+                className="w-full border rounded-md px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div className="flex-1">
+              <label className="block text-sm font-medium mb-1">Type</label>
+              <select
+                name="type"
+                value={form.type}
+                onChange={handleChange}
+                className="w-full border rounded-md px-3 py-2 text-sm"
+              >
+                <option value="EXPENSE">Expense</option>
+                <option value="INCOME">Income</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">Category</label>
+            <input
+              type="text"
+              name="category"
+              value={form.category}
+              onChange={handleChange}
+              placeholder="Food, Rent, Shopping..."
+              required
+              className="w-full border rounded-md px-3 py-2 text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Description (optional)
+            </label>
+            <input
+              type="text"
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              className="w-full border rounded-md px-3 py-2 text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Date (optional)
+            </label>
+            <input
+              type="date"
+              name="date"
+              value={form.date}
+              onChange={handleChange}
+              className="w-full border rounded-md px-3 py-2 text-sm"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="mt-2 w-full rounded-md px-4 py-2 text-sm font-semibold bg-[#d08e92] text-white hover:bg-[#b97377] disabled:opacity-60"
+          >
+            {saving ? 'Saving...' : 'Add Transaction'}
+          </button>
+        </form>
+
+        <div>
+          <h2 className="text-lg font-semibold mb-2 text-[#5b2b29]">
+            Recent Transactions
+          </h2>
+
+          {loading ? (
+            <p className="text-sm text-gray-500">Loading...</p>
+          ) : transactions.length === 0 ? (
+            <p className="text-sm text-gray-500">
+              No transactions yet. Add your first one above!
+            </p>
+          ) : (
+            <ul className="space-y-2 max-h-64 overflow-y-auto pr-1">
+              {transactions.map((tx) => (
+                <li
+                  key={tx.id}
+                  className="flex justify-between items-center border rounded-md px-3 py-2 text-sm"
+                >
+                  <div>
+                    <div className="font-medium">
+                      {tx.category}{' '}
+                      <span className="text-xs text-gray-500">
+                        ({tx.type.toLowerCase()})
+                      </span>
+                    </div>
+                    {tx.description && (
+                      <div className="text-xs text-gray-500">
+                        {tx.description}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-right">
+                    <div
+                      className={
+                        'font-semibold ' +
+                        (tx.type === 'INCOME'
+                          ? 'text-green-600'
+                          : 'text-red-600')
+                      }
+                    >
+                      {tx.type === 'INCOME' ? '+' : '-'}$
+                      {tx.amount.toFixed(2)}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {new Date(tx.date).toLocaleDateString()}
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </main>
   );
 }
