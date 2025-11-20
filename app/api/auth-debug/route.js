@@ -1,3 +1,4 @@
+// app/api/auth-debug/route.js
 export const runtime = 'nodejs';
 
 import { auth } from '@clerk/nextjs/server';

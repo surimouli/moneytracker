@@ -2,18 +2,16 @@
 
 export const runtime = 'nodejs';
 
-import { getAuth } from '@clerk/nextjs/server';
-import { headers } from 'next/headers';
+import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 import { prisma } from '../../../lib/prisma';
 
 // GET /api/transactions
 export async function GET() {
   try {
-    const auth = getAuth(headers());
-    const userId = auth.userId;
+    const { userId, sessionId } = auth();
 
-    console.log('AUTH RESULT IN GET /api/transactions:', auth);
+    console.log('AUTH RESULT IN GET /api/transactions:', { userId, sessionId });
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -37,10 +35,9 @@ export async function GET() {
 // POST /api/transactions
 export async function POST(request) {
   try {
-    const auth = getAuth(headers());
-    const userId = auth.userId;
+    const { userId, sessionId } = auth();
 
-    console.log('AUTH RESULT IN POST /api/transactions:', auth);
+    console.log('AUTH RESULT IN POST /api/transactions:', { userId, sessionId });
 
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
