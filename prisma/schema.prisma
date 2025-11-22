@@ -1,36 +1,25 @@
-// prisma/schema.prisma
-
 generator client {
-  provider = "prisma-client-js" // we can later switch to "prisma-client" if needed
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-}
-
-model User {
-  id           String         @id          // Clerk userId
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-
-  transactions Transaction[]
+  // URL comes from prisma.config.cjs / environment, so no url here
 }
 
 model Transaction {
-  id          String    @id @default(cuid())
-  user        User      @relation(fields: [userId], references: [id])
+  id          Int      @id @default(autoincrement())
   userId      String
-
   amount      Float
-  type        TransactionType
+  type        String
   category    String
   description String?
-  date        DateTime  @default(now())
-
-  createdAt   DateTime  @default(now())
+  date        DateTime @default(now())
 }
 
-enum TransactionType {
-  INCOME
-  EXPENSE
+model Category {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  name      String
+  createdAt DateTime @default(now())
 }

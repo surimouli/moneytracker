@@ -21,9 +21,15 @@ export default function DashboardPage() {
   const { userId, isSignedIn } = useAuth();
 
   const [activeTab, setActiveTab] = useState('overview');
+
   const [transactions, setTransactions] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loadingTx, setLoadingTx] = useState(true);
+  const [txError, setTxError] = useState(null);
+
+  const [categories, setCategories] = useState([]);
+  const [loadingCats, setLoadingCats] = useState(true);
+  const [catError, setCatError] = useState(null);
+  const [newCategoryName, setNewCategoryName] = useState('');
 
   const [mode, setMode] = useState('EXPENSE'); // EXPENSE | INCOME
   const [amount, setAmount] = useState('');
@@ -37,15 +43,15 @@ export default function DashboardPage() {
   // Fetch transactions
   useEffect(() => {
     if (!isSignedIn || !userId) {
-      setLoading(false);
+      setLoadingTx(false);
       setTransactions([]);
       return;
     }
 
     const fetchTransactions = async () => {
       try {
-        setLoading(true);
-        setError(null);
+        setLoadingTx(true);
+        setTxError(null);
 
         const res = await fetch(
           `/api/transactions?userId=${encodeURIComponent(userId)}`
@@ -54,7 +60,7 @@ export default function DashboardPage() {
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           console.error('Failed to load transactions:', data);
-          setError('Failed to load transactions');
+          setTxError('Failed to load transactions');
           setTransactions([]);
           return;
         }
@@ -63,13 +69,51 @@ export default function DashboardPage() {
         setTransactions(data);
       } catch (err) {
         console.error('Error loading transactions:', err);
-        setError('Failed to load transactions');
+        setTxError('Failed to load transactions');
       } finally {
-        setLoading(false);
+        setLoadingTx(false);
       }
     };
 
     fetchTransactions();
+  }, [isSignedIn, userId]);
+
+  // Fetch categories
+  useEffect(() => {
+    if (!isSignedIn || !userId) {
+      setLoadingCats(false);
+      setCategories([]);
+      return;
+    }
+
+    const fetchCategories = async () => {
+      try {
+        setLoadingCats(true);
+        setCatError(null);
+
+        const res = await fetch(
+          `/api/categories?userId=${encodeURIComponent(userId)}`
+        );
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          console.error('Failed to load categories:', data);
+          setCatError('Failed to load categories');
+          setCategories([]);
+          return;
+        }
+
+        const data = await res.json();
+        setCategories(data);
+      } catch (err) {
+        console.error('Error loading categories:', err);
+        setCatError('Failed to load categories');
+      } finally {
+        setLoadingCats(false);
+      }
+    };
+
+    fetchCategories();
   }, [isSignedIn, userId]);
 
   // Derived stats
@@ -93,16 +137,16 @@ export default function DashboardPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isSignedIn || !userId) {
-      setError('You must be signed in to add a transaction.');
+      setTxError('You must be signed in to add a transaction.');
       return;
     }
     if (!amount || !category) {
-      setError('Amount and category are required.');
+      setTxError('Amount and category are required.');
       return;
     }
 
     try {
-      setError(null);
+      setTxError(null);
 
       const res = await fetch('/api/transactions', {
         method: 'POST',
@@ -121,7 +165,7 @@ export default function DashboardPage() {
 
       if (!res.ok) {
         console.error('Failed to create transaction:', data);
-        setError(data.error || 'Failed to create transaction');
+        setTxError(data.error || 'Failed to create transaction');
         return;
       }
 
@@ -136,7 +180,74 @@ export default function DashboardPage() {
       setDate(new Date().toISOString().slice(0, 10));
     } catch (err) {
       console.error('Error creating transaction:', err);
-      setError('Failed to create transaction');
+      setTxError('Failed to create transaction');
+    }
+  };
+
+  const handleCreateCategory = async (e) => {
+    e.preventDefault();
+    if (!isSignedIn || !userId) return;
+    if (!newCategoryName.trim()) {
+      setCatError('Category name cannot be empty.');
+      return;
+    }
+
+    try {
+      setCatError(null);
+
+      const res = await fetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          name: newCategoryName.trim(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error('Failed to create category:', data);
+        setCatError(data.error || 'Failed to create category');
+        return;
+      }
+
+      setCategories((prev) => [...prev, data]);
+      setNewCategoryName('');
+    } catch (err) {
+      console.error('Error creating category:', err);
+      setCatError('Failed to create category');
+    }
+  };
+
+  const handleDeleteCategory = async (id) => {
+    if (!isSignedIn || !userId) return;
+
+    try {
+      const res = await fetch('/api/categories', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, id }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        console.error('Failed to delete category:', data);
+        setCatError(data.error || 'Failed to delete category');
+        return;
+      }
+
+      setCategories((prev) => prev.filter((c) => c.id !== id));
+
+      // If current transaction form is using this category, clear it
+      setCategory((current) => {
+        const exists = categories.some((c) => c.id === id && c.name === current);
+        return exists ? '' : current;
+      });
+    } catch (err) {
+      console.error('Error deleting category:', err);
+      setCatError('Failed to delete category');
     }
   };
 
@@ -172,7 +283,7 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Top summary bar */}
+      {/* Top summary */}
       <section className="dash-top-summary">
         <div className="summary-chip income">
           Income: <span>{formatCurrency(totals.income)}</span>
@@ -185,9 +296,9 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* Tabs */}
+      {/* Tabs (Budgets removed) */}
       <nav className="dash-tabs">
-        {['overview', 'transactions', 'categories', 'budgets'].map((tab) => (
+        {['overview', 'transactions', 'categories'].map((tab) => (
           <button
             key={tab}
             type="button"
@@ -197,12 +308,11 @@ export default function DashboardPage() {
             {tab === 'overview' && 'Overview'}
             {tab === 'transactions' && 'Transactions'}
             {tab === 'categories' && 'Categories'}
-            {tab === 'budgets' && 'Budgets'}
           </button>
         ))}
       </nav>
 
-      {/* Content for tabs */}
+      {/* OVERVIEW */}
       {activeTab === 'overview' && (
         <section className="dash-grid">
           <div className="dash-card">
@@ -236,7 +346,7 @@ export default function DashboardPage() {
 
           <div className="dash-card">
             <h2 className="card-title">Recent Transactions</h2>
-            {loading ? (
+            {loadingTx ? (
               <p className="card-empty">Loading...</p>
             ) : transactions.length === 0 ? (
               <p className="card-empty">
@@ -275,6 +385,7 @@ export default function DashboardPage() {
         </section>
       )}
 
+      {/* TRANSACTIONS */}
       {activeTab === 'transactions' && (
         <section className="dash-grid">
           {/* Add transaction */}
@@ -284,11 +395,7 @@ export default function DashboardPage() {
               Little habits, big glow-up. Log it and move on 💅
             </p>
 
-            {error && (
-              <p className="card-error">
-                {error}
-              </p>
-            )}
+            {txError && <p className="card-error">{txError}</p>}
 
             <div className="mode-toggle">
               <button
@@ -341,16 +448,16 @@ export default function DashboardPage() {
                   onChange={(e) => setCategory(e.target.value)}
                   required
                 >
-                  <option value="">Select a category</option>
-                  <option value="Food & Dining">Food & Dining</option>
-                  <option value="Shopping">Shopping</option>
-                  <option value="Transportation">Transportation</option>
-                  <option value="Bills & Utilities">Bills & Utilities</option>
-                  <option value="Entertainment">Entertainment</option>
-                  <option value="Healthcare">Healthcare</option>
-                  <option value="Travel">Travel</option>
-                  <option value="Salary">Salary</option>
-                  <option value="Other">Other</option>
+                  <option value="">
+                    {categories.length === 0
+                      ? 'Create a category in the Categories tab first'
+                      : 'Select a category'}
+                  </option>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.name}
+                    </option>
+                  ))}
                 </select>
               </label>
 
@@ -377,7 +484,7 @@ export default function DashboardPage() {
           {/* All transactions */}
           <div className="dash-card">
             <h2 className="card-title">All Transactions</h2>
-            {loading ? (
+            {loadingTx ? (
               <p className="card-empty">Loading...</p>
             ) : transactions.length === 0 ? (
               <p className="card-empty">
@@ -416,40 +523,58 @@ export default function DashboardPage() {
         </section>
       )}
 
+      {/* CATEGORIES */}
       {activeTab === 'categories' && (
         <section className="dash-card full-width">
-          <h2 className="card-title">Manage Categories</h2>
+          <h2 className="card-title">Your Categories</h2>
           <p className="card-caption">
-            Quick-start ideas. You can reuse these in your transactions.
+            Name things the way your brain actually thinks. Cozy little
+            buckets for your money.
           </p>
 
-          <div className="chip-grid">
-            <button className="cat-chip cat-food">Food & Dining</button>
-            <button className="cat-chip cat-transport">Transportation</button>
-            <button className="cat-chip cat-shopping">Shopping</button>
-            <button className="cat-chip cat-bills">Bills & Utilities</button>
-            <button className="cat-chip cat-entertainment">Entertainment</button>
-            <button className="cat-chip cat-health">Healthcare</button>
-            <button className="cat-chip cat-travel">Travel</button>
-            <button className="cat-chip cat-salary">Salary</button>
-          </div>
+          {catError && <p className="card-error">{catError}</p>}
+
+          <form className="category-form" onSubmit={handleCreateCategory}>
+            <input
+              type="text"
+              placeholder="e.g. Coffee, Travel Fund, Night Out..."
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+            />
+            <button type="submit" className="primary-btn expense">
+              Add Category
+            </button>
+          </form>
+
+          {loadingCats ? (
+            <p className="card-empty" style={{ marginTop: '0.75rem' }}>
+              Loading categories...
+            </p>
+          ) : categories.length === 0 ? (
+            <p className="card-empty" style={{ marginTop: '0.75rem' }}>
+              No categories yet. Add your first one above ✨
+            </p>
+          ) : (
+            <div className="chip-grid user-cats">
+              {categories.map((c) => (
+                <div key={c.id} className="cat-pill">
+                  <span>{c.name}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteCategory(c.id)}
+                    aria-label="Delete category"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
 
           <p className="card-note">
-            (In a future phase, we can wire this up to a real categories table 💭)
+            These categories will show up in your transaction form. Delete
+            them here if you change your mind later.
           </p>
-        </section>
-      )}
-
-      {activeTab === 'budgets' && (
-        <section className="dash-card full-width">
-          <h2 className="card-title">Budgets</h2>
-          <p className="card-caption">
-            Coming soon: monthly caps, savings goals, and cute progress bars.
-          </p>
-          <div className="budget-placeholder">
-            <span className="budget-emoji">🎯</span>
-            <p>For now, focus on logging a few days of spending. We’ll turn it into magic later.</p>
-          </div>
         </section>
       )}
     </main>

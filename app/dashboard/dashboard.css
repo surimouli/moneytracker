@@ -458,3 +458,51 @@
 .budget-emoji {
   font-size: 1.4rem;
 }
+
+/* CATEGORY FORM + USER PILLS */
+.category-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+}
+
+.category-form input {
+  flex: 1 1 220px;
+  border-radius: 0.8rem;
+  border: 1px solid rgba(255, 179, 198, 0.28);
+  background: rgba(9, 5, 5, 0.65);
+  padding: 0.6rem 0.75rem;
+  color: #ffecee;
+  font-size: 0.9rem;
+}
+
+.category-form input::placeholder {
+  color: rgba(255, 236, 238, 0.55);
+}
+
+.chip-grid.user-cats {
+  margin-top: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.cat-pill {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 179, 198, 0.24);
+  background: rgba(255, 179, 198, 0.08);
+  color: #ffecee;
+  font-size: 0.85rem;
+}
+
+.cat-pill button {
+  border: none;
+  background: transparent;
+  color: #ffb3c6;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
