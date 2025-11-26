@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 58, "column": 0}, "map": {"version":3,"sources":["file:///C:/Users/Mouli%20Suri/OneDrive%20-%20University%20of%20Cincinnati/Python/moneytracker-frontend/app/api/auth-debug/route.js"],"sourcesContent":["// app/api/auth-debug/route.js\r\nexport const runtime = 'nodejs';\r\n\r\nimport { auth } from '@clerk/nextjs/server';\r\nimport { NextResponse } from 'next/server';\r\n\r\nexport async function GET() {\r\n  const session = auth();\r\n  console.log('AUTH DEBUG SESSION:', session);\r\n  return NextResponse.json(session, { status: 200 });\r\n}"],"names":[],"mappings":"AAAA,8BAA8B;;;;;;;AAG9B;AACA;AAHO,MAAM,UAAU;;;AAKhB,eAAe;IACpB,MAAM,UAAU,IAAA,6LAAI;IACpB,QAAQ,GAAG,CAAC,uBAAuB;IACnC,OAAO,gJAAY,CAAC,IAAI,CAAC,SAAS;QAAE,QAAQ;IAAI;AAClD"}}]
-}
