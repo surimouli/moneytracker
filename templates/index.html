@@ -9,10 +9,6 @@
           Positive = expense, Negative = income (if you want)
         </p>
 
-        {% if error %}
-        <div class="alert alert-danger py-2">{{ error }}</div>
-        {% endif %}
-
         <form method="post" action="{{ url_for('index') }}">
           <div class="mb-3">
             <label class="form-label">Amount</label>
@@ -102,7 +98,7 @@
             <tbody>
               {% for t in transactions %}
               <tr>
-                <td>{{ t.date }}</td>
+                <td>{{ t.date.strftime("%Y-%m-%d %H:%M") }}</td>
                 <td>{{ t.category }}</td>
                 <td
                   class="{% if t.amount < 0 %}text-success{% else %}text-danger{% endif %}"
