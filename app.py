@@ -1,12 +1,12 @@
 from flask import Flask, session, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
-from functools import wraps
 import os
+
+from models import db  # db object
+from decorators import login_required  # used in templates via imports in routes
 
 app = Flask(__name__)
 
-# 🔐 Secret for sessions (change & keep out of Git in real life)
+# 🔐 Secret for sessions (change for real projects, don’t commit real value)
 app.secret_key = "change_this_to_a_random_secret_string"
 
 # 📦 SQLite DB config
@@ -15,71 +15,29 @@ db_path = os.path.join(BASE_DIR, "app.db")
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-db = SQLAlchemy(app)
-
-
-# ---------- MODELS ----------
-
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(80), unique=True, nullable=False)
-    password_hash = db.Column(db.String(200), nullable=False)
-
-    transactions = db.relationship("Transaction", backref="user", lazy=True)
-    categories = db.relationship("Category", backref="user", lazy=True)
-
-
-class Transaction(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    amount = db.Column(db.Float, nullable=False)
-    category = db.Column(db.String(80), nullable=False, default="Uncategorized")
-    note = db.Column(db.String(255), nullable=True)
-
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-
-
-class Category(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-
-    __table_args__ = (
-        db.UniqueConstraint("name", "user_id", name="uq_category_name_user"),
-    )
-
-
-# Create tables if not exist
-with app.app_context():
-    db.create_all()
-
-
-# ---------- HELPERS ----------
-
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if "user_id" not in session:
-            return redirect(url_for("auth.login"))
-        return f(*args, **kwargs)
-
-    return decorated_function
+# Initialize SQLAlchemy with this app
+db.init_app(app)
 
 
 @app.context_processor
 def inject_user():
-    # available in all templates as {{ current_user }}
+    # available as {{ current_user }} in templates
     return {"current_user": session.get("username")}
 
 
-# Root route → redirect to Transactions tab
 @app.route("/")
 def home():
+    # Redirect root to Transactions tab
     return redirect(url_for("transactions.transactions_view"))
 
 
-# ---------- BLUEPRINT REGISTRATION ----------
+# Create tables once app + db are ready
+with app.app_context():
+    from models import User, Transaction, Category  # noqa: F401
+    db.create_all()
 
+
+# Import and register blueprints AFTER app + db setup
 from auth_routes import auth_bp
 from transactions_routes import transactions_bp
 from categories_routes import categories_bp

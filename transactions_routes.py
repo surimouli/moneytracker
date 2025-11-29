@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 
-from app import db, Transaction, Category, login_required
+from models import db, Transaction, Category
+from decorators import login_required
 
 transactions_bp = Blueprint("transactions", __name__)
 
@@ -24,7 +25,7 @@ def transactions_view():
                 category_name = "Uncategorized"
 
             new_tx = Transaction(
-                amount=amount,           # positive = spend, negative = income
+                amount=amount,  # positive = spend, negative = income
                 category=category_name,
                 note=note,
                 user_id=user_id,
@@ -34,10 +35,8 @@ def transactions_view():
             flash("Transaction added!", "success")
             return redirect(url_for("transactions.transactions_view"))
 
-    # categories for dropdown (user-specific)
     categories = Category.query.filter_by(user_id=user_id).order_by(Category.name).all()
 
-    # 5 most recent transactions
     recent = (
         Transaction.query.filter_by(user_id=user_id)
         .order_by(Transaction.date.desc())

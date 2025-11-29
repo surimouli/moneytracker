@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, session
 
-from app import Transaction, login_required
+from models import Transaction
+from decorators import login_required
 
 history_bp = Blueprint("history", __name__)
 
