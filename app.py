@@ -55,10 +55,8 @@ def home():
 # ----------------- DB TABLE CREATION -----------------
 
 with app.app_context():
-    # Import models so SQLAlchemy is aware of them before creating tables
-    from models import User, Transaction, Category  # noqa: F401
+    from models import User, Transaction, Category
     db.create_all()
-
 
 # ----------------- BLUEPRINT REGISTRATION -----------------
 
