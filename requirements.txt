@@ -5,3 +5,4 @@ SQLAlchemy==2.0.44
 gunicorn==21.2.0
 openpyxl==3.1.2
 tzdata==2024.1
+psycopg2-binary==2.9.9
