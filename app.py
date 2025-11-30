@@ -51,3 +51,16 @@ app.register_blueprint(history_bp)
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+@app.route("/debug-db")
+def debug_db():
+    from models import User, Transaction, Category
+    users = User.query.all()
+    txs = Transaction.query.all()
+    cats = Category.query.all()
+
+    return {
+        "users": [u.username for u in users],
+        "transactions": len(txs),
+        "categories": len(cats)
+    }
