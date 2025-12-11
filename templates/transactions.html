@@ -1,21 +1,27 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-md-6">
-    <div class="card shadow-sm mb-4">
-      <div class="card-body">
-        <h5 class="card-title">Add Transaction</h5>
-        <p class="text-muted mb-2">
-          Choose whether this is income or spending. You only type the number.
-        </p>
+  <div class="col-lg-6 col-md-8">
+    <div class="mt-card">
+      <div class="mt-card-header">
+        <div>
+          <h2 class="mt-card-title">Add a transaction</h2>
+          <p class="mt-card-subtitle">
+            Log your incomes and spendings, even if you forgot yesterday.
+          </p>
+        </div>
+      </div>
 
-        <form method="post" action="{{ url_for('transactions.transactions_view') }}">
-          <!-- Amount + Income/Spending toggle -->
-          <div class="mb-3">
-            <label class="form-label">Amount</label>
-
-            <!-- Toggle buttons -->
-            <div class="btn-group w-100 mb-2" role="group" aria-label="Transaction type">
+      <form
+        method="post"
+        action="{{ url_for('transactions.transactions_view') }}"
+        class="mt-form"
+      >
+        <!-- Amount + type -->
+        <div class="mb-3">
+          <label class="mt-label">Amount</label>
+          <div class="d-flex gap-2 mb-2">
+            <div class="mt-toggle-group" role="group">
               <input
                 type="radio"
                 class="btn-check"
@@ -24,7 +30,7 @@
                 value="income"
                 checked
               />
-              <label class="btn btn-outline-success" for="income">
+              <label class="mt-toggle-btn mt-toggle-income" for="income">
                 Income
               </label>
 
@@ -35,57 +41,65 @@
                 id="spending"
                 value="spending"
               />
-              <label class="btn btn-outline-danger" for="spending">
+              <label class="mt-toggle-btn mt-toggle-spending" for="spending">
                 Spending
               </label>
             </div>
-
-            <!-- Just a plain number input; sign is set in backend -->
-            <input
-              type="number"
-              step="0.01"
-              class="form-control"
-              name="amount"
-              placeholder="Enter amount (e.g. 20.00)"
-              required
-            />
-
-            <div class="form-text">
-              Income will be saved as <strong>positive</strong>, spending as
-              <strong>negative</strong>.
-            </div>
           </div>
-
-          <!-- Category dropdown -->
-          <div class="mb-3">
-            <label class="form-label">Category</label>
-            <select name="category" class="form-select">
-              <option value="">Uncategorized</option>
-              {% for c in categories %}
-              <option value="{{ c.name }}">{{ c.name }}</option>
-              {% endfor %}
-            </select>
-            <div class="form-text">
-              Manage categories in the <strong>Categories</strong> tab.
-            </div>
+          <input
+            type="number"
+            step="0.01"
+            class="form-control mt-input"
+            name="amount"
+            placeholder="e.g. 25.00"
+            required
+          />
+          <div class="mt-help-text">
+            Just type the number. The sign comes from Income / Spending.
           </div>
+        </div>
 
-          <!-- Note -->
-          <div class="mb-3">
-            <label class="form-label">Note (optional)</label>
-            <input
-              type="text"
-              class="form-control"
-              name="note"
-              placeholder="Starbucks, paycheck, rent..."
-            />
+        <!-- Date -->
+        <div class="mb-3">
+          <label class="mt-label">Date (optional)</label>
+          <input
+            type="date"
+            class="form-control mt-input"
+            name="date"
+          />
+          <div class="mt-help-text">
+            Leave blank to use today. Set this if you’re catching up.
           </div>
+        </div>
 
-          <button type="submit" class="btn btn-primary w-100">
-            Save Transaction
+        <!-- Category -->
+        <div class="mb-3">
+          <label class="mt-label">Category</label>
+          <select name="category" class="form-select mt-input">
+            <option value="">Uncategorized</option>
+            {% for c in categories %}
+            <option value="{{ c.name }}">{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Note -->
+        <div class="mb-4">
+          <label class="mt-label">Note (optional)</label>
+          <input
+            type="text"
+            class="form-control mt-input"
+            name="note"
+            placeholder="Starbucks, rent, paycheck..."
+          />
+        </div>
+
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="mt-primary-btn">
+            Save transaction
           </button>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   </div>
 </div>

@@ -2,81 +2,144 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Budget Tracker</title>
+    <title>MoneyTracker</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Bootstrap (for grid & forms) -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+
+    <!-- Custom styles -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
     />
   </head>
-  <body class="bg-light">
-    <nav class="navbar navbar-dark bg-dark mb-4">
-      <div class="container d-flex justify-content-between">
+  <body data-theme="light">
+    <!-- Glassy Navbar -->
+    <nav class="mt-navbar">
+      <div class="mt-nav-inner container">
+        <!-- Left: Brand -->
         <a
-          class="navbar-brand"
+          class="mt-nav-brand"
           href="{{ url_for('transactions.transactions_view') }}"
         >
-          💰 Budget Tracker
+          <span class="mt-dot"></span>
+          MoneyTracker
         </a>
 
-        <div class="d-flex align-items-center gap-2">
-          {% if current_user %}
-          <span class="text-light small">Logged in as {{ current_user }}</span>
-
+        <!-- Right: Links + theme + auth -->
+        <div class="mt-nav-right">
           <a
-            class="btn btn-outline-light btn-sm"
             href="{{ url_for('transactions.transactions_view') }}"
+            class="mt-nav-link {% if request.endpoint and request.endpoint.startswith('transactions.') %}mt-nav-link-active{% endif %}"
+            >Transactions</a
           >
-            Transactions
-          </a>
           <a
-            class="btn btn-outline-light btn-sm"
             href="{{ url_for('categories.categories_view') }}"
+            class="mt-nav-link {% if request.endpoint and request.endpoint.startswith('categories.') %}mt-nav-link-active{% endif %}"
+            >Categories</a
           >
-            Categories
-          </a>
           <a
-            class="btn btn-outline-light btn-sm"
             href="{{ url_for('history.history_view') }}"
+            class="mt-nav-link {% if request.endpoint and request.endpoint.startswith('history.') %}mt-nav-link-active{% endif %}"
+            >History</a
           >
-            History
-          </a>
 
-          <a
-            class="btn btn-warning btn-sm ms-2"
-            href="{{ url_for('auth.logout') }}"
-          >
+          <!-- Theme toggle -->
+          <button id="themeToggle" type="button" class="mt-theme-toggle">
+            <span id="themeIcon">🌙</span>
+            <span id="themeLabel">Dark</span>
+          </button>
+
+          {% if current_user %}
+          <span class="mt-user-pill"> {{ current_user }} </span>
+          <a href="{{ url_for('auth.logout') }}" class="mt-pill-button">
             Logout
           </a>
           {% else %}
-          <a class="btn btn-outline-light btn-sm" href="{{ url_for('auth.login') }}">
+          <a href="{{ url_for('auth.login') }}" class="mt-pill-button">
             Login
-          </a>
-          <a
-            class="btn btn-outline-light btn-sm"
-            href="{{ url_for('auth.register') }}"
-          >
-            Sign Up
           </a>
           {% endif %}
         </div>
       </div>
     </nav>
 
-    <div class="container mb-5">
+    <!-- Main content wrapper -->
+    <main class="mt-page container">
+      <!-- Flash messages -->
       {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-      <div class="mb-3">
-        {% for category, msg in messages %}
-        <div class="alert alert-{{ category }} py-2 mb-2">{{ msg }}</div>
-        {% endfor %}
-      </div>
-      {% endif %}
+        {% if messages %}
+          <div class="mt-flash-wrapper">
+            {% for category, message in messages %}
+              <div
+                class="alert alert-{{ category }} alert-dismissible fade show mt-flash"
+                role="alert"
+              >
+                {{ message }}
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="alert"
+                  aria-label="Close"
+                ></button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
       {% endwith %}
 
       {% block content %}{% endblock %}
-    </div>
+    </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Theme toggle script -->
+    <script>
+      (function () {
+        function applyTheme(theme) {
+          document.body.dataset.theme = theme;
+          const icon = document.getElementById("themeIcon");
+          const label = document.getElementById("themeLabel");
+          if (!icon || !label) return;
+
+          if (theme === "dark") {
+            icon.textContent = "🌞";
+            label.textContent = "Light";
+          } else {
+            icon.textContent = "🌙";
+            label.textContent = "Dark";
+          }
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+          const saved = localStorage.getItem("mt-theme");
+          const prefersDark =
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+          const initial = saved || (prefersDark ? "dark" : "light");
+          applyTheme(initial);
+
+          const btn = document.getElementById("themeToggle");
+          if (!btn) return;
+          btn.addEventListener("click", function () {
+            const current = document.body.dataset.theme || "light";
+            const next = current === "light" ? "dark" : "light";
+            localStorage.setItem("mt-theme", next);
+            applyTheme(next);
+          });
+        });
+      })();
+    </script>
   </body>
 </html>

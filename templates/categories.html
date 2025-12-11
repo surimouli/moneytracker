@@ -1,59 +1,61 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="row">
-  <div class="col-md-5">
-    <div class="card shadow-sm mb-4">
-      <div class="card-body">
-        <h5 class="card-title">Add Category</h5>
-        <p class="text-muted mb-2">
-          These categories will show up on the Transactions tab.
-        </p>
+<div class="row justify-content-center">
+  <div class="col-lg-6 col-md-8">
+    <div class="mt-card">
+      <div class="mt-card-header">
+        <div>
+          <h2 class="mt-card-title">Categories</h2>
+          <p class="mt-card-subtitle">
+            Create cute labels for where your money goes and comes from.
+          </p>
+        </div>
+      </div>
 
-        <form method="post" action="{{ url_for('categories.categories_view') }}">
-          <div class="mb-3">
-            <label class="form-label">Category Name</label>
+      <!-- Add category form -->
+      <form
+        method="post"
+        action="{{ url_for('categories.categories_view') }}"
+        class="mt-form mb-3"
+      >
+        <div class="mb-3 d-flex gap-2 align-items-end">
+          <div class="flex-grow-1">
+            <label class="mt-label">New category</label>
             <input
               type="text"
-              class="form-control"
+              class="form-control mt-input"
               name="name"
-              placeholder="Food, Rent, Fun, Salary..."
+              placeholder="Food, Uber, Tuition..."
               required
             />
           </div>
-
-          <button type="submit" class="btn btn-primary w-100">
-            Save Category
+          <button type="submit" class="mt-secondary-btn">
+            Add
           </button>
-        </form>
-      </div>
-    </div>
-  </div>
+        </div>
+      </form>
 
-  <div class="col-md-7">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h5 class="card-title">Your Categories</h5>
-        {% if categories %}
-        <ul class="list-group">
-          {% for c in categories %}
-          <li
-            class="list-group-item d-flex justify-content-between align-items-center"
+      <!-- List of categories -->
+      {% if categories %}
+      <ul class="mt-list">
+        {% for c in categories %}
+        <li class="mt-list-item d-flex justify-content-between align-items-center">
+          <span>{{ c.name }}</span>
+          <form
+            method="post"
+            action="{{ url_for('categories.delete_category', cat_id=c.id) }}"
+            onsubmit="return confirm('Delete this category?');"
           >
-            {{ c.name }}
-            <form
-              method="post"
-              action="{{ url_for('categories.delete_category', cat_id=c.id) }}"
-              onsubmit="return confirm('Delete this category?');"
-            >
-              <button class="btn btn-sm btn-outline-danger">Delete</button>
-            </form>
-          </li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <p class="text-muted mb-0">You don't have any categories yet.</p>
-        {% endif %}
-      </div>
+            <button type="submit" class="mt-soft-danger-btn">
+              Delete
+            </button>
+          </form>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="mt-empty-text">No categories yet. Add your first one above ✨</p>
+      {% endif %}
     </div>
   </div>
 </div>

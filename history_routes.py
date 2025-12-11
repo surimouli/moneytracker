@@ -170,6 +170,99 @@ def delete_transaction(tx_id):
     return redirect(url_for("history.history_view"))
 
 
+@history_bp.route("/history/<int:tx_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_transaction(tx_id):
+    """
+    Edit an existing transaction (amount, type, date, category, note).
+    Accessible from the History tab.
+    """
+    user_id = session["user_id"]
+    tx = Transaction.query.filter_by(id=tx_id, user_id=user_id).first()
+
+    if not tx:
+        flash("Transaction not found or not yours.", "danger")
+        return redirect(url_for("history.history_view"))
+
+    # All categories for the dropdown
+    categories = (
+        Category.query.filter_by(user_id=user_id)
+        .order_by(Category.name)
+        .all()
+    )
+
+    if request.method == "POST":
+        amount_str = request.form.get("amount", "").strip()
+        tx_type = request.form.get("type", "income")  # "income" or "spending"
+        category_name = request.form.get("category", "").strip()
+        note = request.form.get("note", "").strip()
+        date_str = request.form.get("date", "").strip()  # YYYY-MM-DD
+
+        # Validate amount
+        try:
+            amount = float(amount_str)
+        except ValueError:
+            flash("Please enter a valid number for amount.", "danger")
+            return redirect(url_for("history.edit_transaction", tx_id=tx.id))
+
+        # Income = positive, Spending = negative
+        if tx_type == "income":
+            amount = abs(amount)
+        else:
+            amount = -abs(amount)
+
+        if not category_name:
+            category_name = "Uncategorized"
+
+        # Update amount, category, note
+        tx.amount = amount
+        tx.category = category_name
+        tx.note = note
+
+        # Update date if provided
+        if date_str:
+            try:
+                local_date = datetime.strptime(date_str, "%Y-%m-%d")
+                local_dt = datetime(
+                    local_date.year,
+                    local_date.month,
+                    local_date.day,
+                    12,
+                    0,
+                    0,
+                    tzinfo=LOCAL_TZ,
+                )
+                utc_dt = local_dt.astimezone(timezone.utc).replace(tzinfo=None)
+                tx.date = utc_dt
+            except ValueError:
+                flash("Invalid date format.", "warning")
+
+        db.session.commit()
+        flash("Transaction updated.", "success")
+
+        return redirect(url_for("history.history_view"))
+
+    # GET: Pre-fill form with current values
+    abs_amount = abs(tx.amount)
+    tx_type = "income" if tx.amount >= 0 else "spending"
+
+    # Pre-fill date as local YYYY-MM-DD
+    dt = tx.date
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    local_dt = dt.astimezone(LOCAL_TZ)
+    date_for_input = local_dt.strftime("%Y-%m-%d")
+
+    return render_template(
+        "edit_transaction.html",
+        transaction=tx,
+        categories=categories,
+        abs_amount=abs_amount,
+        tx_type=tx_type,
+        date_for_input=date_for_input,
+    )
+
+
 @history_bp.route("/history/export_excel")
 @login_required
 def export_history_excel():
