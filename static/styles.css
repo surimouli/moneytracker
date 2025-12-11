@@ -55,7 +55,9 @@ body {
   border: none;
 }
 
-/* NAVBAR */
+/* ==========================================
+   NAVBAR
+   ========================================== */
 
 .mt-navbar {
   position: fixed;
@@ -74,12 +76,16 @@ body {
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.9);
   box-shadow: var(--mt-shadow-soft);
+}
 
-  padding: 0.45rem 1.2rem;
+/* ----- DESKTOP NAV (shown >= 769px) ----- */
+
+.mt-nav-desktop {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
+  padding: 0.5rem 1.3rem;
+  gap: 0.8rem;
 }
 
 .mt-nav-brand {
@@ -104,9 +110,13 @@ body {
 .mt-nav-right {
   display: flex;
   align-items: center;
-  gap: 0.55rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.mt-nav-links-desktop {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .mt-nav-link {
@@ -115,6 +125,7 @@ body {
   border-radius: 999px;
   text-decoration: none;
   color: var(--mt-muted);
+  white-space: nowrap;
 }
 
 .mt-nav-link-active,
@@ -122,6 +133,48 @@ body {
   background-color: rgba(255, 255, 255, 0.95);
   color: var(--mt-text);
 }
+
+.mt-nav-auth-desktop {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* ----- MOBILE NAV (shown <= 768px) ----- */
+
+.mt-nav-mobile {
+  display: none; /* hidden on desktop, shown in media query */
+  padding: 0.7rem 1.2rem;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.mt-nav-top-mobile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.mt-nav-auth-mobile {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.mt-nav-links-mobile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.mt-nav-links-mobile .mt-nav-link {
+  flex: 1;
+  text-align: center;
+}
+
+/* shared auth pill/button */
 
 .mt-user-pill {
   padding: 0.25rem 0.7rem;
@@ -139,7 +192,9 @@ body {
   color: var(--mt-accent-strong);
 }
 
-/* CARD LAYOUT */
+/* ==========================================
+   CARDS & LAYOUT
+   ========================================== */
 
 .mt-card {
   background: var(--mt-bg-alt);
@@ -171,7 +226,9 @@ body {
   color: var(--mt-muted);
 }
 
-/* FORMS */
+/* ==========================================
+   FORMS
+   ========================================== */
 
 .mt-form {
   margin-top: 0.5rem;
@@ -202,7 +259,7 @@ body {
   margin-top: 0.2rem;
 }
 
-/* TOGGLE (Income / Spending) */
+/* toggle (Income / Spending) */
 
 .mt-toggle-group {
   display: inline-flex;
@@ -231,7 +288,7 @@ body {
   color: var(--mt-negative);
 }
 
-/* BUTTONS */
+/* buttons */
 
 .mt-primary-btn {
   background: linear-gradient(135deg, var(--mt-accent), var(--mt-accent-strong));
@@ -268,7 +325,9 @@ body {
   color: var(--mt-negative);
 }
 
-/* SUMMARY CARDS (History top row) */
+/* ==========================================
+   SUMMARY CARDS (History)
+   ========================================== */
 
 .mt-summary-grid {
   display: grid;
@@ -297,7 +356,9 @@ body {
   margin-top: 0.15rem;
 }
 
-/* CHIPS (filters & category tabs) */
+/* ==========================================
+   CHIPS
+   ========================================== */
 
 .mt-chip-row {
   display: flex;
@@ -331,7 +392,9 @@ body {
   color: #ffffff;
 }
 
-/* TABLE (History) */
+/* ==========================================
+   TABLE
+   ========================================== */
 
 .mt-card .table {
   background-color: transparent;
@@ -358,7 +421,9 @@ body {
   background-color: rgba(0, 0, 0, 0.02);
 }
 
-/* LISTS (categories) */
+/* ==========================================
+   LISTS (categories)
+   ========================================== */
 
 .mt-list {
   list-style: none;
@@ -375,28 +440,49 @@ body {
   color: var(--mt-muted);
 }
 
-/* RESPONSIVE */
+/* ==========================================
+   RESPONSIVE
+   ========================================== */
+
+/* mobile / tablet */
 
 @media (max-width: 768px) {
-  .mt-nav-inner {
-    flex-wrap: wrap;
-    row-gap: 0.4rem;
+  .mt-nav-desktop {
+    display: none;
   }
+
+  .mt-nav-mobile {
+    display: flex;
+    border-radius: 1.6rem;
+  }
+
+  .mt-nav-links-mobile .mt-nav-link {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.4rem;
+  }
+
   .mt-page {
-    padding-top: 7rem;
+    padding-top: 7.2rem;
     padding-bottom: 2.5rem;
   }
-  .mt-summary-grid {
-    grid-template-columns: 1fr;
-  }
+
   .mt-card {
     padding: 1.3rem 1.1rem 1.4rem;
   }
+
+  .mt-summary-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
-@media (max-width: 576px) {
-  .mt-card-header-row {
-    flex-direction: column;
-    align-items: flex-start;
+/* desktop / laptop */
+
+@media (min-width: 769px) {
+  .mt-nav-mobile {
+    display: none;
+  }
+
+  .mt-nav-desktop {
+    display: flex;
   }
 }

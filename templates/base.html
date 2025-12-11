@@ -12,59 +12,133 @@
     />
 
     <!-- Your styles -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
   </head>
 
   <body>
-    <!-- Glass Navbar -->
+    <!-- NAVBAR -->
     <nav class="mt-navbar">
-      <div class="mt-nav-inner">
-
-        <a class="mt-nav-brand" href="{{ url_for('transactions.transactions_view') }}">
+      <!-- DESKTOP / LAPTOP VERSION -->
+      <div class="mt-nav-inner mt-nav-desktop">
+        <!-- brand left -->
+        <a
+          class="mt-nav-brand"
+          href="{{ url_for('transactions.transactions_view') }}"
+        >
           <span class="mt-dot"></span>
           MONEYTRACKER
         </a>
 
+        <!-- center links + right auth -->
         <div class="mt-nav-right">
-          <a href="{{ url_for('transactions.transactions_view') }}"
-            class="mt-nav-link {% if request.endpoint.startswith('transactions.') %}mt-nav-link-active{% endif %}">
-            Transactions
+          <div class="mt-nav-links-desktop">
+            <a
+              href="{{ url_for('transactions.transactions_view') }}"
+              class="mt-nav-link {% if request.endpoint.startswith('transactions.') %}mt-nav-link-active{% endif %}"
+            >
+              Transactions
+            </a>
+            <a
+              href="{{ url_for('categories.categories_view') }}"
+              class="mt-nav-link {% if request.endpoint.startswith('categories.') %}mt-nav-link-active{% endif %}"
+            >
+              Categories
+            </a>
+            <a
+              href="{{ url_for('history.history_view') }}"
+              class="mt-nav-link {% if request.endpoint.startswith('history.') %}mt-nav-link-active{% endif %}"
+            >
+              History
+            </a>
+          </div>
+
+          <div class="mt-nav-auth-desktop">
+            {% if current_user %}
+            <span class="mt-user-pill">{{ current_user }}</span>
+            <a href="{{ url_for('auth.logout') }}" class="mt-pill-button">
+              Logout
+            </a>
+            {% else %}
+            <a href="{{ url_for('auth.login') }}" class="mt-pill-button">
+              Login
+            </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- MOBILE VERSION -->
+      <div class="mt-nav-inner mt-nav-mobile">
+        <!-- Row 1: brand left, username + logout right -->
+        <div class="mt-nav-top-mobile">
+          <a
+            class="mt-nav-brand"
+            href="{{ url_for('transactions.transactions_view') }}"
+          >
+            <span class="mt-dot"></span>
+            MONEYTRACKER
           </a>
 
-          <a href="{{ url_for('categories.categories_view') }}"
-            class="mt-nav-link {% if request.endpoint.startswith('categories.') %}mt-nav-link-active{% endif %}">
-            Categories
-          </a>
-
-          <a href="{{ url_for('history.history_view') }}"
-            class="mt-nav-link {% if request.endpoint.startswith('history.') %}mt-nav-link-active{% endif %}">
-            History
-          </a>
-
-          {% if current_user %}
-          <span class="mt-user-pill">{{ current_user }}</span>
-          <a href="{{ url_for('auth.logout') }}" class="mt-pill-button">Logout</a>
-          {% else %}
-          <a href="{{ url_for('auth.login') }}" class="mt-pill-button">Login</a>
-          {% endif %}
+          <div class="mt-nav-auth-mobile">
+            {% if current_user %}
+            <span class="mt-user-pill">{{ current_user }}</span>
+            <a href="{{ url_for('auth.logout') }}" class="mt-pill-button">
+              Logout
+            </a>
+            {% else %}
+            <a href="{{ url_for('auth.login') }}" class="mt-pill-button">
+              Login
+            </a>
+            {% endif %}
+          </div>
         </div>
 
+        <!-- Row 2: nav links full-width -->
+        <div class="mt-nav-links-mobile">
+          <a
+            href="{{ url_for('transactions.transactions_view') }}"
+            class="mt-nav-link {% if request.endpoint.startswith('transactions.') %}mt-nav-link-active{% endif %}"
+          >
+            Transactions
+          </a>
+          <a
+            href="{{ url_for('categories.categories_view') }}"
+            class="mt-nav-link {% if request.endpoint.startswith('categories.') %}mt-nav-link-active{% endif %}"
+          >
+            Categories
+          </a>
+          <a
+            href="{{ url_for('history.history_view') }}"
+            class="mt-nav-link {% if request.endpoint.startswith('history.') %}mt-nav-link-active{% endif %}"
+          >
+            History
+          </a>
+        </div>
       </div>
     </nav>
 
     <!-- Main Page Area -->
     <main class="mt-page container">
       {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          <div class="mt-flash-wrapper">
-            {% for category, message in messages %}
-              <div class="alert alert-{{ category }} alert-dismissible fade show mt-flash">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-              </div>
-            {% endfor %}
-          </div>
-        {% endif %}
+      {% if messages %}
+      <div class="mt-flash-wrapper">
+        {% for category, message in messages %}
+        <div
+          class="alert alert-{{ category }} alert-dismissible fade show mt-flash"
+        >
+          {{ message }}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+          ></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
       {% endwith %}
 
       {% block content %}{% endblock %}
