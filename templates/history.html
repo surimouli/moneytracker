@@ -1,33 +1,29 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="mt-card">
+  <!-- Header + Export -->
   <div class="mt-card-header mt-card-header-row">
     <div>
       <h2 class="mt-card-title">History</h2>
       <p class="mt-card-subtitle">
         {{ date_label }} ·
-        {% if active_category != 'all' %}
-          Category <strong>{{ active_category }}</strong>
-        {% else %}
+        {% if active_category == 'all' %}
           All categories
+        {% else %}
+          Category <strong>{{ active_category }}</strong>
         {% endif %}
       </p>
     </div>
-    <a
-      href="{{ url_for('history.export_history_excel') }}"
-      class="mt-secondary-btn"
-    >
+    <a href="{{ url_for('history.export_history_excel') }}" class="mt-secondary-btn">
       Export Excel
     </a>
   </div>
 
-  <!-- Summary row -->
+  <!-- Summary cards -->
   <div class="mt-summary-grid">
     <div class="mt-summary-card">
       <div class="mt-summary-label">Current balance</div>
-      <div
-        class="mt-summary-value {% if summary.balance < 0 %}mt-text-negative{% else %}mt-text-positive{% endif %}"
-      >
+      <div class="mt-summary-value {% if summary.balance < 0 %}mt-text-negative{% else %}mt-text-positive{% endif %}">
         ${{ "%.2f"|format(summary.balance) }}
       </div>
     </div>
@@ -45,7 +41,7 @@
     </div>
   </div>
 
-  <!-- Date range buttons -->
+  <!-- Date range chips -->
   <div class="mt-chip-row mt-chip-row-wrap">
     {% set ranges = [
       ('today', 'Today'),
@@ -66,7 +62,7 @@
     {% endfor %}
   </div>
 
-  <!-- Category tabs as chips -->
+  <!-- Category chips -->
   <div class="mt-chip-row mt-chip-row-scroll mb-3">
     <a
       href="{{ url_for('history.history_view', category='all', range=date_range) }}"
@@ -84,7 +80,7 @@
     {% endfor %}
   </div>
 
-  <!-- Table -->
+  <!-- Transactions table -->
   {% if transactions %}
   <div class="table-responsive">
     <table class="table mt-table align-middle">
@@ -103,24 +99,17 @@
         <tr>
           <td>{{ loop.index }}</td>
           <td class="small">
-            {{ t.local_date.strftime("%Y-%m-%d") }}<br />
-            <span class="mt-muted">
-              {{ t.local_date.strftime("%H:%M") }}
-            </span>
+            {{ t.date.strftime("%Y-%m-%d") }}<br />
+            <span class="mt-muted">{{ t.date.strftime("%H:%M") }}</span>
           </td>
           <td>{{ t.category }}</td>
-          <td
-            class="{% if t.amount < 0 %}mt-text-negative{% else %}mt-text-positive{% endif %}"
-          >
+          <td class="{% if t.amount < 0 %}mt-text-negative{% else %}mt-text-positive{% endif %}">
             ${{ "%.2f"|format(t.amount) }}
           </td>
           <td>{{ t.note }}</td>
           <td class="text-end">
             <div class="d-inline-flex gap-1">
-              <a
-                href="{{ url_for('history.edit_transaction', tx_id=t.id) }}"
-                class="mt-soft-button"
-              >
+              <a href="{{ url_for('history.edit_transaction', tx_id=t.id) }}" class="mt-soft-button">
                 Edit
               </a>
               <form
